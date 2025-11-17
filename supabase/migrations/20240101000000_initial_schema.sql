@@ -21,15 +21,51 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- =====================================================
+-- TABLES
+-- =====================================================
+
+-- User profiles table (must be created first for helper functions)
+CREATE TABLE profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    organization_id TEXT NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'viewer',
+    email VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Constraints
+    CONSTRAINT role_check CHECK (role IN ('owner', 'property_manager', 'bookkeeper', 'maintenance', 'viewer'))
+);
+
+-- Indexes for profiles
+CREATE INDEX idx_profiles_organization_id ON profiles(organization_id);
+CREATE INDEX idx_profiles_role ON profiles(role);
+
+-- Trigger for profiles
+CREATE TRIGGER update_profiles_updated_at
+    BEFORE UPDATE ON profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- =====================================================
+-- HELPER FUNCTIONS
+-- =====================================================
+
 -- Helper function to get current user's organization_id
--- Note: This queries the profiles table, so RLS must be disabled on profiles for this function
 CREATE OR REPLACE FUNCTION get_user_organization_id()
 RETURNS TEXT AS $$
   SELECT organization_id FROM public.profiles WHERE id = auth.uid();
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
+-- Function to get user role
+CREATE OR REPLACE FUNCTION get_user_role()
+RETURNS TEXT AS $$
+    SELECT role FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
+
 -- =====================================================
--- TABLES
+-- PROPERTIES, UNITS, PEOPLE TABLES
 -- =====================================================
 
 -- Properties table
@@ -232,13 +268,29 @@ CREATE POLICY "Users can delete people in their organization"
     ON people FOR DELETE
     USING (organization_id = get_user_organization_id());
 
+-- Profiles RLS policies
+CREATE POLICY "Users can view their own profile"
+    ON profiles FOR SELECT
+    USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile"
+    ON profiles FOR UPDATE
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Profiles can be created during signup"
+    ON profiles FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
 -- =====================================================
 -- COMMENTS
 -- =====================================================
 
+COMMENT ON TABLE profiles IS 'User profiles with organization membership and role information';
 COMMENT ON TABLE properties IS 'Stores property information for the property management system';
 COMMENT ON TABLE units IS 'Stores individual unit information within properties';
 COMMENT ON TABLE people IS 'Stores information for tenants, landlords, vendors, and contacts';
 
-COMMENT ON FUNCTION get_user_organization_id() IS 'Returns the organization_id from the current user JWT claims';
+COMMENT ON FUNCTION get_user_organization_id() IS 'Returns the organization_id from the current user';
+COMMENT ON FUNCTION get_user_role() IS 'Returns the role of the current user';
 COMMENT ON FUNCTION update_updated_at_column() IS 'Automatically updates the updated_at timestamp when a row is modified';
