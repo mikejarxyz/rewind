@@ -2,3 +2,4 @@
 // This file will be used by Drizzle to generate migrations
 
 export * from "./properties";
+export * from "./people";

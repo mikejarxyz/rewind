@@ -248,3 +248,108 @@ export async function getUnitsByPropertyId(propertyId: string) {
     return { error: "Failed to fetch units", units: [] };
   }
 }
+
+export async function getUnitById(id: string) {
+  try {
+    const [unit] = await db
+      .select()
+      .from(units)
+      .where(eq(units.id, id))
+      .limit(1);
+
+    if (!unit) {
+      return { error: "Unit not found", unit: null };
+    }
+
+    return { unit };
+  } catch (error) {
+    console.error("Failed to fetch unit:", error);
+    return { error: "Failed to fetch unit", unit: null };
+  }
+}
+
+export async function updateUnit(id: string, formData: FormData) {
+  const user = await getUser();
+  if (!user) {
+    return { error: "Unauthorized" };
+  }
+
+  const data = {
+    propertyId: formData.get("propertyId"),
+    unitNumber: formData.get("unitNumber"),
+    floor: formData.get("floor") || null,
+    bedrooms: formData.get("bedrooms") || 0,
+    bathrooms: formData.get("bathrooms") || 1,
+    squareFeet: formData.get("squareFeet") || null,
+    monthlyRent: formData.get("monthlyRent") || null,
+    securityDeposit: formData.get("securityDeposit") || null,
+    status: formData.get("status") || "vacant",
+    isAvailable: formData.get("isAvailable") === "true",
+    features: formData.get("features") || null,
+    notes: formData.get("notes") || null,
+  };
+
+  const validation = unitSchema.safeParse(data);
+
+  if (!validation.success) {
+    return {
+      error: "Validation failed",
+      errors: validation.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const [updatedUnit] = await db
+      .update(units)
+      .set({
+        ...validation.data,
+        bathrooms: validation.data.bathrooms.toString(),
+        squareFeet: validation.data.squareFeet?.toString() ?? null,
+        monthlyRent: validation.data.monthlyRent?.toString() ?? null,
+        securityDeposit: validation.data.securityDeposit?.toString() ?? null,
+        updatedBy: user.id,
+        updatedAt: new Date(),
+      })
+      .where(eq(units.id, id))
+      .returning();
+
+    if (!updatedUnit) {
+      return { error: "Unit not found" };
+    }
+
+    revalidatePath(`/dashboard/properties/${validation.data.propertyId}`);
+    revalidatePath(`/dashboard/units/${id}`);
+    return { success: true, unit: updatedUnit };
+  } catch (error) {
+    console.error("Failed to update unit:", error);
+    return { error: "Failed to update unit" };
+  }
+}
+
+export async function deleteUnit(id: string) {
+  const user = await getUser();
+  if (!user) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    // Get the property ID before deleting so we can revalidate
+    const [unit] = await db
+      .select()
+      .from(units)
+      .where(eq(units.id, id))
+      .limit(1);
+
+    if (!unit) {
+      return { error: "Unit not found" };
+    }
+
+    await db.delete(units).where(eq(units.id, id));
+
+    revalidatePath(`/dashboard/properties/${unit.propertyId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete unit:", error);
+    return { error: "Failed to delete unit" };
+  }
+}

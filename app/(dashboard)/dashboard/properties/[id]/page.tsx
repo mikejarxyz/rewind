@@ -11,14 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getPropertyById, getUnitsByPropertyId } from "@/actions/properties";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { UnitsTable } from "./units-table";
 
 interface PropertyDetailPageProps {
   params: Promise<{ id: string }>;
@@ -205,46 +198,7 @@ export default async function PropertyDetailPage({
               </Link>
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Unit Number</TableHead>
-                  <TableHead>Bedrooms</TableHead>
-                  <TableHead>Bathrooms</TableHead>
-                  <TableHead>Rent</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {units.map((unit) => (
-                  <TableRow key={unit.id}>
-                    <TableCell className="font-medium">
-                      {unit.unitNumber}
-                    </TableCell>
-                    <TableCell>{unit.bedrooms}</TableCell>
-                    <TableCell>{unit.bathrooms}</TableCell>
-                    <TableCell>
-                      {unit.monthlyRent
-                        ? `$${Number(unit.monthlyRent).toLocaleString()}/mo`
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          unit.status === "occupied"
-                            ? "default"
-                            : unit.status === "maintenance"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {unit.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <UnitsTable units={units} propertyId={id} />
           )}
         </CardContent>
       </Card>
