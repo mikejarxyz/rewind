@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteUnit } from "@/actions/properties";
-import type { Unit } from "@/lib/db/schema/properties";
+import type { Unit } from "@/types/database";
 
 interface UnitsTableProps {
   units: Unit[];
@@ -81,17 +81,17 @@ export function UnitsTable({ units, propertyId }: UnitsTableProps) {
       <TableBody>
         {units.map((unit) => (
           <TableRow key={unit.id}>
-            <TableCell className="font-medium">{unit.unitNumber}</TableCell>
+            <TableCell className="font-medium">{unit.unit_number}</TableCell>
             <TableCell>{unit.bedrooms}</TableCell>
             <TableCell>{unit.bathrooms}</TableCell>
             <TableCell>
-              {unit.squareFeet
-                ? `${Number(unit.squareFeet).toLocaleString()} sq ft`
+              {unit.square_feet
+                ? `${Number(unit.square_feet).toLocaleString()} sq ft`
                 : "—"}
             </TableCell>
             <TableCell>
-              {unit.monthlyRent
-                ? `$${Number(unit.monthlyRent).toLocaleString()}/mo`
+              {unit.monthly_rent
+                ? `$${Number(unit.monthly_rent).toLocaleString()}/mo`
                 : "—"}
             </TableCell>
             <TableCell>

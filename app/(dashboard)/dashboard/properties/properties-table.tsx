@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
-import type { Property } from "@/lib/db/schema/properties";
+import type { Property } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,12 +66,12 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
               <div className="text-sm">
                 <div>{property.address}</div>
                 <div className="text-muted-foreground">
-                  {property.city}, {property.state} {property.zipCode}
+                  {property.city}, {property.state} {property.zip_code}
                 </div>
               </div>
             </TableCell>
-            <TableCell className="capitalize">{property.propertyType}</TableCell>
-            <TableCell>{property.numberOfUnits}</TableCell>
+            <TableCell className="capitalize">{property.property_type}</TableCell>
+            <TableCell>{property.number_of_units}</TableCell>
             <TableCell>
               <Badge
                 variant={

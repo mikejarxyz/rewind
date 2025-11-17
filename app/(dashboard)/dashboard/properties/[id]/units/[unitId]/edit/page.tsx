@@ -25,7 +25,7 @@ export default async function EditUnitPage({ params }: EditUnitPageProps) {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Edit Unit</h1>
         <p className="text-muted-foreground">
-          Update unit {unit.unitNumber} in {property.name}
+          Update unit {unit.unit_number} in {property.name}
         </p>
       </div>
       <UnitForm propertyId={id} unit={unit} />

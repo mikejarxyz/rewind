@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getPersonById } from "@/actions/people";
+import type { Person } from "@/types/database";
 
 interface PersonDetailPageProps {
   params: Promise<{
@@ -27,6 +28,8 @@ export default async function PersonDetailPage({
   if (error || !person) {
     notFound();
   }
+
+  const typedPerson = person as Person;
 
   function getTypeColor(type: string) {
     switch (type) {
@@ -60,19 +63,19 @@ export default async function PersonDetailPage({
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {person.firstName} {person.lastName}
+            {typedPerson.first_name} {typedPerson.last_name}
           </h1>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary" className={getTypeColor(person.type)}>
-              {person.type}
+            <Badge variant="secondary" className={getTypeColor(typedPerson.type)}>
+              {typedPerson.type}
             </Badge>
-            <Badge variant="secondary" className={getStatusColor(person.status)}>
-              {person.status}
+            <Badge variant="secondary" className={getStatusColor(typedPerson.status)}>
+              {typedPerson.status}
             </Badge>
           </div>
         </div>
         <Button asChild>
-          <Link href={`/dashboard/people/${person.id}/edit`}>
+          <Link href={`/dashboard/people/${typedPerson.id}/edit`}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </Link>
@@ -86,39 +89,39 @@ export default async function PersonDetailPage({
           <CardDescription>Primary contact details</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {person.email && (
+          {typedPerson.email && (
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{person.email}</p>
+                <p className="text-sm text-muted-foreground">{typedPerson.email}</p>
               </div>
             </div>
           )}
 
-          {person.phone && (
+          {typedPerson.phone && (
             <div className="flex items-center gap-3">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Phone</p>
-                <p className="text-sm text-muted-foreground">{person.phone}</p>
+                <p className="text-sm text-muted-foreground">{typedPerson.phone}</p>
               </div>
             </div>
           )}
 
-          {person.alternatePhone && (
+          {typedPerson.alternate_phone && (
             <div className="flex items-center gap-3">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Alternate Phone</p>
                 <p className="text-sm text-muted-foreground">
-                  {person.alternatePhone}
+                  {typedPerson.alternate_phone}
                 </p>
               </div>
             </div>
           )}
 
-          {!person.email && !person.phone && !person.alternatePhone && (
+          {!typedPerson.email && !typedPerson.phone && !typedPerson.alternate_phone && (
             <p className="text-sm text-muted-foreground">
               No contact information available
             </p>
@@ -127,7 +130,7 @@ export default async function PersonDetailPage({
       </Card>
 
       {/* Address */}
-      {(person.address || person.city || person.state || person.zipCode) && (
+      {(typedPerson.address || typedPerson.city || typedPerson.state || typedPerson.zip_code) && (
         <Card>
           <CardHeader>
             <CardTitle>Address</CardTitle>
@@ -137,12 +140,12 @@ export default async function PersonDetailPage({
             <div className="flex items-start gap-3">
               <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
-                {person.address && (
-                  <p className="text-sm">{person.address}</p>
+                {typedPerson.address && (
+                  <p className="text-sm">{typedPerson.address}</p>
                 )}
-                {(person.city || person.state || person.zipCode) && (
+                {(typedPerson.city || typedPerson.state || typedPerson.zip_code) && (
                   <p className="text-sm text-muted-foreground">
-                    {[person.city, person.state, person.zipCode]
+                    {[typedPerson.city, typedPerson.state, typedPerson.zip_code]
                       .filter(Boolean)
                       .join(", ")}
                   </p>
@@ -154,46 +157,46 @@ export default async function PersonDetailPage({
       )}
 
       {/* Company Information */}
-      {(person.companyName ||
-        person.vendorCategory ||
-        person.licenseNumber) && (
+      {(typedPerson.company_name ||
+        typedPerson.vendor_category ||
+        typedPerson.license_number) && (
         <Card>
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
             <CardDescription>Business details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {person.companyName && (
+            {typedPerson.company_name && (
               <div className="flex items-center gap-3">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Company Name</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.companyName}
+                    {typedPerson.company_name}
                   </p>
                 </div>
               </div>
             )}
 
-            {person.vendorCategory && (
+            {typedPerson.vendor_category && (
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Category</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.vendorCategory}
+                    {typedPerson.vendor_category}
                   </p>
                 </div>
               </div>
             )}
 
-            {person.licenseNumber && (
+            {typedPerson.license_number && (
               <div className="flex items-center gap-3">
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">License Number</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.licenseNumber}
+                    {typedPerson.license_number}
                   </p>
                 </div>
               </div>
@@ -203,39 +206,39 @@ export default async function PersonDetailPage({
       )}
 
       {/* Emergency Contact */}
-      {person.type === "tenant" &&
-        (person.emergencyContactName ||
-          person.emergencyContactPhone ||
-          person.emergencyContactRelationship) && (
+      {typedPerson.type === "tenant" &&
+        (typedPerson.emergency_contact_name ||
+          typedPerson.emergency_contact_phone ||
+          typedPerson.emergency_contact_relationship) && (
           <Card>
             <CardHeader>
               <CardTitle>Emergency Contact</CardTitle>
               <CardDescription>Emergency contact information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {person.emergencyContactName && (
+              {typedPerson.emergency_contact_name && (
                 <div>
                   <p className="text-sm font-medium">Name</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.emergencyContactName}
+                    {typedPerson.emergency_contact_name}
                   </p>
                 </div>
               )}
 
-              {person.emergencyContactPhone && (
+              {typedPerson.emergency_contact_phone && (
                 <div>
                   <p className="text-sm font-medium">Phone</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.emergencyContactPhone}
+                    {typedPerson.emergency_contact_phone}
                   </p>
                 </div>
               )}
 
-              {person.emergencyContactRelationship && (
+              {typedPerson.emergency_contact_relationship && (
                 <div>
                   <p className="text-sm font-medium">Relationship</p>
                   <p className="text-sm text-muted-foreground">
-                    {person.emergencyContactRelationship}
+                    {typedPerson.emergency_contact_relationship}
                   </p>
                 </div>
               )}
@@ -244,13 +247,13 @@ export default async function PersonDetailPage({
         )}
 
       {/* Notes */}
-      {person.notes && (
+      {typedPerson.notes && (
         <Card>
           <CardHeader>
             <CardTitle>Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{person.notes}</p>
+            <p className="text-sm whitespace-pre-wrap">{typedPerson.notes}</p>
           </CardContent>
         </Card>
       )}

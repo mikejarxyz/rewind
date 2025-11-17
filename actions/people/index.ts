@@ -1,15 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
-import { people } from "@/lib/db/schema";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { personSchema } from "@/lib/validations/people";
-import { eq, desc } from "drizzle-orm";
-import { getUser } from "@/actions/auth";
+import { createId } from "@paralleldrive/cuid2";
 
 export async function createPerson(formData: FormData) {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       return { error: "Unauthorized" };
     }
@@ -44,28 +42,42 @@ export async function createPerson(formData: FormData) {
       };
     }
 
-    const [person] = await db
-      .insert(people)
-      .values({
-        ...validation.data,
+    const supabase = await createClient();
+
+    const { data: person, error } = await supabase
+      .from("people")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .insert({
+        id: createId(),
+        first_name: validation.data.firstName,
+        last_name: validation.data.lastName,
         email: validation.data.email || null,
         phone: validation.data.phone || null,
-        alternatePhone: validation.data.alternatePhone || null,
-        companyName: validation.data.companyName || null,
+        alternate_phone: validation.data.alternatePhone || null,
+        type: validation.data.type as "tenant" | "landlord" | "vendor" | "contact",
+        company_name: validation.data.companyName || null,
         address: validation.data.address || null,
         city: validation.data.city || null,
         state: validation.data.state || null,
-        zipCode: validation.data.zipCode || null,
-        emergencyContactName: validation.data.emergencyContactName || null,
-        emergencyContactPhone: validation.data.emergencyContactPhone || null,
-        emergencyContactRelationship: validation.data.emergencyContactRelationship || null,
+        zip_code: validation.data.zipCode || null,
+        emergency_contact_name: validation.data.emergencyContactName || null,
+        emergency_contact_phone: validation.data.emergencyContactPhone || null,
+        emergency_contact_relationship: validation.data.emergencyContactRelationship || null,
         notes: validation.data.notes || null,
-        vendorCategory: validation.data.vendorCategory || null,
-        licenseNumber: validation.data.licenseNumber || null,
-        createdBy: user.id,
-        updatedBy: user.id,
+        status: validation.data.status as "active" | "inactive",
+        vendor_category: validation.data.vendorCategory || null,
+        license_number: validation.data.licenseNumber || null,
+        created_by: user.id,
+        updated_by: user.id,
+        organization_id: user.organizationId,
       })
-      .returning();
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to create person:", error);
+      return { error: "Failed to create person" };
+    }
 
     revalidatePath("/dashboard/people");
     return { success: true, person };
@@ -77,17 +89,24 @@ export async function createPerson(formData: FormData) {
 
 export async function getPeople() {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       return { error: "Unauthorized", people: [] };
     }
 
-    const allPeople = await db
-      .select()
-      .from(people)
-      .orderBy(desc(people.createdAt));
+    const supabase = await createClient();
 
-    return { people: allPeople };
+    const { data: people, error } = await supabase
+      .from("people")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to fetch people:", error);
+      return { error: "Failed to fetch people", people: [] };
+    }
+
+    return { people: people || [] };
   } catch (error) {
     console.error("Failed to fetch people:", error);
     return { error: "Failed to fetch people", people: [] };
@@ -96,18 +115,21 @@ export async function getPeople() {
 
 export async function getPersonById(id: string) {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       return { error: "Unauthorized", person: null };
     }
 
-    const [person] = await db
-      .select()
-      .from(people)
-      .where(eq(people.id, id))
-      .limit(1);
+    const supabase = await createClient();
 
-    if (!person) {
+    const { data: person, error } = await supabase
+      .from("people")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch person:", error);
       return { error: "Person not found", person: null };
     }
 
@@ -120,7 +142,7 @@ export async function getPersonById(id: string) {
 
 export async function updatePerson(id: string, formData: FormData) {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       return { error: "Unauthorized" };
     }
@@ -155,37 +177,48 @@ export async function updatePerson(id: string, formData: FormData) {
       };
     }
 
-    const [updatedPerson] = await db
-      .update(people)
-      .set({
-        ...validation.data,
+    const supabase = await createClient();
+
+    const { data: person, error } = await supabase
+      .from("people")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .update({
+        first_name: validation.data.firstName,
+        last_name: validation.data.lastName,
         email: validation.data.email || null,
         phone: validation.data.phone || null,
-        alternatePhone: validation.data.alternatePhone || null,
-        companyName: validation.data.companyName || null,
+        alternate_phone: validation.data.alternatePhone || null,
+        type: validation.data.type as "tenant" | "landlord" | "vendor" | "contact",
+        company_name: validation.data.companyName || null,
         address: validation.data.address || null,
         city: validation.data.city || null,
         state: validation.data.state || null,
-        zipCode: validation.data.zipCode || null,
-        emergencyContactName: validation.data.emergencyContactName || null,
-        emergencyContactPhone: validation.data.emergencyContactPhone || null,
-        emergencyContactRelationship: validation.data.emergencyContactRelationship || null,
+        zip_code: validation.data.zipCode || null,
+        emergency_contact_name: validation.data.emergencyContactName || null,
+        emergency_contact_phone: validation.data.emergencyContactPhone || null,
+        emergency_contact_relationship: validation.data.emergencyContactRelationship || null,
         notes: validation.data.notes || null,
-        vendorCategory: validation.data.vendorCategory || null,
-        licenseNumber: validation.data.licenseNumber || null,
-        updatedBy: user.id,
-        updatedAt: new Date(),
+        status: validation.data.status as "active" | "inactive",
+        vendor_category: validation.data.vendorCategory || null,
+        license_number: validation.data.licenseNumber || null,
+        updated_by: user.id,
       })
-      .where(eq(people.id, id))
-      .returning();
+      .eq("id", id)
+      .select()
+      .single();
 
-    if (!updatedPerson) {
+    if (error) {
+      console.error("Failed to update person:", error);
+      return { error: "Failed to update person" };
+    }
+
+    if (!person) {
       return { error: "Person not found" };
     }
 
     revalidatePath("/dashboard/people");
     revalidatePath(`/dashboard/people/${id}`);
-    return { success: true, person: updatedPerson };
+    return { success: true, person };
   } catch (error) {
     console.error("Failed to update person:", error);
     return { error: "Failed to update person" };
@@ -194,12 +227,22 @@ export async function updatePerson(id: string, formData: FormData) {
 
 export async function deletePerson(id: string) {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       return { error: "Unauthorized" };
     }
 
-    await db.delete(people).where(eq(people.id, id));
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("people")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete person:", error);
+      return { error: "Failed to delete person" };
+    }
 
     revalidatePath("/dashboard/people");
     return { success: true };

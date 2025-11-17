@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createPerson, updatePerson } from "@/actions/people";
-import type { Person } from "@/lib/db/schema/people";
+import type { Person } from "@/types/database";
 
 interface PersonFormProps {
   person?: Person;

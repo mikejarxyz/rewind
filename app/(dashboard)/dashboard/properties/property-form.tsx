@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createProperty, updateProperty } from "@/actions/properties";
-import type { Property } from "@/lib/db/schema/properties";
+import type { Property } from "@/types/database";
 
 interface PropertyFormProps {
   property?: Property;
@@ -275,7 +275,7 @@ export function PropertyForm({ property }: PropertyFormProps) {
                   type="date"
                   defaultValue={
                     property?.purchaseDate
-                      ? new Date(property.purchaseDate)
+                      ? new Date(property.purchase_date)
                           .toISOString()
                           .split("T")[0]
                       : undefined

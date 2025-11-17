@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createUnit, updateUnit } from "@/actions/properties";
-import type { Unit } from "@/lib/db/schema/properties";
+import type { Unit } from "@/types/database";
 
 interface UnitFormProps {
   propertyId: string;

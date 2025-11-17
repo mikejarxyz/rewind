@@ -1,17 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
-import { properties, units } from "@/lib/db/schema/properties";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { propertySchema, unitSchema } from "@/lib/validations/properties";
-import { getUser } from "@/actions/auth";
-import { eq, desc } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 
 // Properties Actions
 
 export async function createProperty(formData: FormData) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
@@ -45,19 +42,40 @@ export async function createProperty(formData: FormData) {
   }
 
   try {
-    const [property] = await db
-      .insert(properties)
-      .values({
-        ...validation.data,
-        squareFeet: validation.data.squareFeet?.toString() ?? null,
-        lotSize: validation.data.lotSize?.toString() ?? null,
-        purchasePrice: validation.data.purchasePrice?.toString() ?? null,
-        currentValue: validation.data.currentValue?.toString() ?? null,
-        purchaseDate: validation.data.purchaseDate ? new Date(validation.data.purchaseDate) : null,
-        createdBy: user.id,
-        updatedBy: user.id,
+    const supabase = await createClient();
+
+    const { data: property, error } = await supabase
+      .from("properties")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .insert({
+        id: createId(),
+        name: validation.data.name,
+        address: validation.data.address,
+        city: validation.data.city,
+        state: validation.data.state,
+        zip_code: validation.data.zipCode,
+        country: validation.data.country,
+        property_type: validation.data.propertyType,
+        number_of_units: validation.data.numberOfUnits,
+        year_built: validation.data.yearBuilt,
+        square_feet: validation.data.squareFeet?.toString() ?? null,
+        lot_size: validation.data.lotSize?.toString() ?? null,
+        purchase_price: validation.data.purchasePrice?.toString() ?? null,
+        purchase_date: validation.data.purchaseDate,
+        current_value: validation.data.currentValue?.toString() ?? null,
+        status: validation.data.status,
+        notes: validation.data.notes,
+        created_by: user.id,
+        updated_by: user.id,
+        organization_id: user.organizationId,
       })
-      .returning();
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to create property:", error);
+      return { error: "Failed to create property" };
+    }
 
     revalidatePath("/dashboard/properties");
     return { success: true, property };
@@ -68,7 +86,7 @@ export async function createProperty(formData: FormData) {
 }
 
 export async function updateProperty(id: string, formData: FormData) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
@@ -102,20 +120,38 @@ export async function updateProperty(id: string, formData: FormData) {
   }
 
   try {
-    const [property] = await db
-      .update(properties)
-      .set({
-        ...validation.data,
-        squareFeet: validation.data.squareFeet?.toString() ?? null,
-        lotSize: validation.data.lotSize?.toString() ?? null,
-        purchasePrice: validation.data.purchasePrice?.toString() ?? null,
-        currentValue: validation.data.currentValue?.toString() ?? null,
-        purchaseDate: validation.data.purchaseDate ? new Date(validation.data.purchaseDate) : null,
-        updatedBy: user.id,
-        updatedAt: new Date(),
+    const supabase = await createClient();
+
+    const { data: property, error } = await supabase
+      .from("properties")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .update({
+        name: validation.data.name,
+        address: validation.data.address,
+        city: validation.data.city,
+        state: validation.data.state,
+        zip_code: validation.data.zipCode,
+        country: validation.data.country,
+        property_type: validation.data.propertyType,
+        number_of_units: validation.data.numberOfUnits,
+        year_built: validation.data.yearBuilt,
+        square_feet: validation.data.squareFeet?.toString() ?? null,
+        lot_size: validation.data.lotSize?.toString() ?? null,
+        purchase_price: validation.data.purchasePrice?.toString() ?? null,
+        purchase_date: validation.data.purchaseDate,
+        current_value: validation.data.currentValue?.toString() ?? null,
+        status: validation.data.status,
+        notes: validation.data.notes,
+        updated_by: user.id,
       })
-      .where(eq(properties.id, id))
-      .returning();
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to update property:", error);
+      return { error: "Failed to update property" };
+    }
 
     if (!property) {
       return { error: "Property not found" };
@@ -131,13 +167,23 @@ export async function updateProperty(id: string, formData: FormData) {
 }
 
 export async function deleteProperty(id: string) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
 
   try {
-    await db.delete(properties).where(eq(properties.id, id));
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("properties")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete property:", error);
+      return { error: "Failed to delete property" };
+    }
 
     revalidatePath("/dashboard/properties");
     return { success: true };
@@ -149,12 +195,19 @@ export async function deleteProperty(id: string) {
 
 export async function getProperties() {
   try {
-    const allProperties = await db
-      .select()
-      .from(properties)
-      .orderBy(desc(properties.createdAt));
+    const supabase = await createClient();
 
-    return { properties: allProperties };
+    const { data: properties, error } = await supabase
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to fetch properties:", error);
+      return { error: "Failed to fetch properties", properties: [] };
+    }
+
+    return { properties: properties || [] };
   } catch (error) {
     console.error("Failed to fetch properties:", error);
     return { error: "Failed to fetch properties", properties: [] };
@@ -163,13 +216,16 @@ export async function getProperties() {
 
 export async function getPropertyById(id: string) {
   try {
-    const [property] = await db
-      .select()
-      .from(properties)
-      .where(eq(properties.id, id))
-      .limit(1);
+    const supabase = await createClient();
 
-    if (!property) {
+    const { data: property, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch property:", error);
       return { error: "Property not found" };
     }
 
@@ -183,7 +239,7 @@ export async function getPropertyById(id: string) {
 // Units Actions
 
 export async function createUnit(formData: FormData) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
@@ -213,18 +269,36 @@ export async function createUnit(formData: FormData) {
   }
 
   try {
-    const [unit] = await db
-      .insert(units)
-      .values({
-        ...validation.data,
+    const supabase = await createClient();
+
+    const { data: unit, error } = await supabase
+      .from("units")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .insert({
+        id: createId(),
+        property_id: validation.data.propertyId,
+        unit_number: validation.data.unitNumber,
+        floor: validation.data.floor,
+        bedrooms: validation.data.bedrooms,
         bathrooms: validation.data.bathrooms.toString(),
-        squareFeet: validation.data.squareFeet?.toString() ?? null,
-        monthlyRent: validation.data.monthlyRent?.toString() ?? null,
-        securityDeposit: validation.data.securityDeposit?.toString() ?? null,
-        createdBy: user.id,
-        updatedBy: user.id,
+        square_feet: validation.data.squareFeet?.toString() ?? null,
+        monthly_rent: validation.data.monthlyRent?.toString() ?? null,
+        security_deposit: validation.data.securityDeposit?.toString() ?? null,
+        status: validation.data.status,
+        is_available: validation.data.isAvailable,
+        features: validation.data.features,
+        notes: validation.data.notes,
+        created_by: user.id,
+        updated_by: user.id,
+        organization_id: user.organizationId,
       })
-      .returning();
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to create unit:", error);
+      return { error: "Failed to create unit" };
+    }
 
     revalidatePath(`/dashboard/properties/${validation.data.propertyId}`);
     return { success: true, unit };
@@ -236,13 +310,20 @@ export async function createUnit(formData: FormData) {
 
 export async function getUnitsByPropertyId(propertyId: string) {
   try {
-    const propertyUnits = await db
-      .select()
-      .from(units)
-      .where(eq(units.propertyId, propertyId))
-      .orderBy(units.unitNumber);
+    const supabase = await createClient();
 
-    return { units: propertyUnits };
+    const { data: units, error } = await supabase
+      .from("units")
+      .select("*")
+      .eq("property_id", propertyId)
+      .order("unit_number", { ascending: true });
+
+    if (error) {
+      console.error("Failed to fetch units:", error);
+      return { error: "Failed to fetch units", units: [] };
+    }
+
+    return { units: units || [] };
   } catch (error) {
     console.error("Failed to fetch units:", error);
     return { error: "Failed to fetch units", units: [] };
@@ -251,13 +332,16 @@ export async function getUnitsByPropertyId(propertyId: string) {
 
 export async function getUnitById(id: string) {
   try {
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(eq(units.id, id))
-      .limit(1);
+    const supabase = await createClient();
 
-    if (!unit) {
+    const { data: unit, error } = await supabase
+      .from("units")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch unit:", error);
       return { error: "Unit not found", unit: null };
     }
 
@@ -269,7 +353,7 @@ export async function getUnitById(id: string) {
 }
 
 export async function updateUnit(id: string, formData: FormData) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
@@ -299,27 +383,42 @@ export async function updateUnit(id: string, formData: FormData) {
   }
 
   try {
-    const [updatedUnit] = await db
-      .update(units)
-      .set({
-        ...validation.data,
-        bathrooms: validation.data.bathrooms.toString(),
-        squareFeet: validation.data.squareFeet?.toString() ?? null,
-        monthlyRent: validation.data.monthlyRent?.toString() ?? null,
-        securityDeposit: validation.data.securityDeposit?.toString() ?? null,
-        updatedBy: user.id,
-        updatedAt: new Date(),
-      })
-      .where(eq(units.id, id))
-      .returning();
+    const supabase = await createClient();
 
-    if (!updatedUnit) {
+    const { data: unit, error } = await supabase
+      .from("units")
+      // @ts-ignore - Types will be properly generated after running migrations
+      .update({
+        property_id: validation.data.propertyId,
+        unit_number: validation.data.unitNumber,
+        floor: validation.data.floor,
+        bedrooms: validation.data.bedrooms,
+        bathrooms: validation.data.bathrooms.toString(),
+        square_feet: validation.data.squareFeet?.toString() ?? null,
+        monthly_rent: validation.data.monthlyRent?.toString() ?? null,
+        security_deposit: validation.data.securityDeposit?.toString() ?? null,
+        status: validation.data.status,
+        is_available: validation.data.isAvailable,
+        features: validation.data.features,
+        notes: validation.data.notes,
+        updated_by: user.id,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to update unit:", error);
+      return { error: "Failed to update unit" };
+    }
+
+    if (!unit) {
       return { error: "Unit not found" };
     }
 
     revalidatePath(`/dashboard/properties/${validation.data.propertyId}`);
     revalidatePath(`/dashboard/units/${id}`);
-    return { success: true, unit: updatedUnit };
+    return { success: true, unit };
   } catch (error) {
     console.error("Failed to update unit:", error);
     return { error: "Failed to update unit" };
@@ -327,26 +426,36 @@ export async function updateUnit(id: string, formData: FormData) {
 }
 
 export async function deleteUnit(id: string) {
-  const user = await getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return { error: "Unauthorized" };
   }
 
   try {
+    const supabase = await createClient();
+
     // Get the property ID before deleting so we can revalidate
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(eq(units.id, id))
-      .limit(1);
+    const { data: unit } = await supabase
+      .from("units")
+      .select("property_id")
+      .eq("id", id)
+      .single();
 
     if (!unit) {
       return { error: "Unit not found" };
     }
 
-    await db.delete(units).where(eq(units.id, id));
+    const { error } = await supabase
+      .from("units")
+      .delete()
+      .eq("id", id);
 
-    revalidatePath(`/dashboard/properties/${unit.propertyId}`);
+    if (error) {
+      console.error("Failed to delete unit:", error);
+      return { error: "Failed to delete unit" };
+    }
+
+    revalidatePath(`/dashboard/properties/${(unit as any).property_id}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to delete unit:", error);

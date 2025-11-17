@@ -41,7 +41,7 @@ export default async function PropertyDetailPage({
             <h1 className="text-3xl font-bold">{property.name}</h1>
             <p className="text-muted-foreground">
               {property.address}, {property.city}, {property.state}{" "}
-              {property.zipCode}
+              {property.zip_code}
             </p>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default async function PropertyDetailPage({
                 <p className="text-sm font-medium text-muted-foreground">
                   Type
                 </p>
-                <p className="capitalize">{property.propertyType}</p>
+                <p className="capitalize">{property.property_type}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -86,30 +86,30 @@ export default async function PropertyDetailPage({
                 <p className="text-sm font-medium text-muted-foreground">
                   Number of Units
                 </p>
-                <p>{property.numberOfUnits}</p>
+                <p>{property.number_of_units}</p>
               </div>
-              {property.yearBuilt && (
+              {property.year_built && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Year Built
                   </p>
-                  <p>{property.yearBuilt}</p>
+                  <p>{property.year_built}</p>
                 </div>
               )}
-              {property.squareFeet && (
+              {property.square_feet && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Square Feet
                   </p>
-                  <p>{Number(property.squareFeet).toLocaleString()}</p>
+                  <p>{Number(property.square_feet).toLocaleString()}</p>
                 </div>
               )}
-              {property.lotSize && (
+              {property.lot_size && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Lot Size
                   </p>
-                  <p>{Number(property.lotSize).toLocaleString()} sq ft</p>
+                  <p>{Number(property.lot_size).toLocaleString()} sq ft</p>
                 </div>
               )}
             </div>
@@ -122,33 +122,33 @@ export default async function PropertyDetailPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {property.purchasePrice && (
+              {property.purchase_price && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Purchase Price
                   </p>
                   <p>
-                    ${Number(property.purchasePrice).toLocaleString()}
+                    ${Number(property.purchase_price).toLocaleString()}
                   </p>
                 </div>
               )}
-              {property.purchaseDate && (
+              {property.purchase_date && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Purchase Date
                   </p>
                   <p>
-                    {new Date(property.purchaseDate).toLocaleDateString()}
+                    {new Date(property.purchase_date).toLocaleDateString()}
                   </p>
                 </div>
               )}
-              {property.currentValue && (
+              {property.current_value && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
                     Current Value
                   </p>
                   <p>
-                    ${Number(property.currentValue).toLocaleString()}
+                    ${Number(property.current_value).toLocaleString()}
                   </p>
                 </div>
               )}

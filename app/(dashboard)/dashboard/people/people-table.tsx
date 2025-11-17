@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deletePerson } from "@/actions/people";
-import type { Person } from "@/lib/db/schema/people";
+import type { Person } from "@/types/database";
 
 interface PeopleTableProps {
   people: Person[];
@@ -92,7 +92,7 @@ export function PeopleTable({ people }: PeopleTableProps) {
         {people.map((person) => (
           <TableRow key={person.id}>
             <TableCell className="font-medium">
-              {person.firstName} {person.lastName}
+              {person.first_name} {person.last_name}
             </TableCell>
             <TableCell>
               <Badge variant="secondary" className={getTypeColor(person.type)}>
@@ -101,7 +101,7 @@ export function PeopleTable({ people }: PeopleTableProps) {
             </TableCell>
             <TableCell>{person.email || "-"}</TableCell>
             <TableCell>{person.phone || "-"}</TableCell>
-            <TableCell>{person.companyName || "-"}</TableCell>
+            <TableCell>{person.company_name || "-"}</TableCell>
             <TableCell>
               <Badge variant="secondary" className={getStatusColor(person.status)}>
                 {person.status}
