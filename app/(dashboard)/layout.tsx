@@ -19,9 +19,9 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <DashboardSidebar />
+        <DashboardSidebar user={user} />
         <div className="flex flex-1 flex-col">
-          <DashboardHeader user={user} />
+          <DashboardHeader />
           <main className="flex-1 p-6">{children}</main>
         </div>
       </div>

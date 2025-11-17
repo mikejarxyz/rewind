@@ -1,18 +1,30 @@
 "use client";
 
 import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+
+const SIDEBAR_WIDTH = "16rem"; // 256px
+const SIDEBAR_WIDTH_COLLAPSED = "4rem"; // 64px
 
 const SidebarContext = React.createContext<{
   isOpen: boolean;
   toggle: () => void;
+  setIsOpen: (open: boolean) => void;
 }>({
   isOpen: true,
   toggle: () => {},
+  setIsOpen: () => {},
 });
 
 export function useSidebar() {
-  return React.useContext(SidebarContext);
+  const context = React.useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider");
+  }
+  return context;
 }
 
 interface SidebarProviderProps {
@@ -31,7 +43,7 @@ export function SidebarProvider({
   }, []);
 
   return (
-    <SidebarContext.Provider value={{ isOpen, toggle }}>
+    <SidebarContext.Provider value={{ isOpen, toggle, setIsOpen }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -45,10 +57,12 @@ export function Sidebar({ className, children, ...props }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col border-r bg-sidebar transition-all duration-300",
-        isOpen ? "w-64" : "w-16",
+        "relative flex h-screen flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out",
         className
       )}
+      style={{
+        width: isOpen ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_COLLAPSED,
+      }}
       {...props}
     >
       {children}
@@ -63,7 +77,10 @@ export function SidebarHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center gap-2 border-b p-4", className)}
+      className={cn(
+        "flex h-16 items-center justify-between border-b px-4",
+        className
+      )}
       {...props}
     >
       {children}
@@ -77,7 +94,7 @@ export function SidebarContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("flex-1 overflow-auto p-2", className)} {...props}>
+    <div className={cn("flex-1 overflow-auto py-2", className)} {...props}>
       {children}
     </div>
   );
@@ -89,7 +106,7 @@ export function SidebarFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("border-t p-4", className)} {...props}>
+    <div className={cn("mt-auto border-t p-4", className)} {...props}>
       {children}
     </div>
   );
@@ -101,7 +118,7 @@ export function SidebarGroup({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("space-y-1 py-2", className)} {...props}>
+    <div className={cn("px-3 py-2", className)} {...props}>
       {children}
     </div>
   );
@@ -114,11 +131,12 @@ export function SidebarGroupLabel({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { isOpen } = useSidebar();
 
+  if (!isOpen) return null;
+
   return (
     <div
       className={cn(
-        "px-3 py-2 text-xs font-semibold text-sidebar-foreground/70",
-        !isOpen && "sr-only",
+        "mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/70",
         className
       )}
       {...props}
@@ -140,10 +158,12 @@ export function SidebarGroupContent({
   );
 }
 
-interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLAnchorElement> {
+interface SidebarMenuItemProps {
   icon?: React.ReactNode;
-  href?: string;
   active?: boolean;
+  asChild?: boolean;
+  className?: string;
+  children: React.ReactNode;
 }
 
 export function SidebarMenuItem({
@@ -151,25 +171,40 @@ export function SidebarMenuItem({
   children,
   icon,
   active,
-  ...props
+  asChild = false,
 }: SidebarMenuItemProps) {
   const { isOpen } = useSidebar();
+  const Comp = asChild ? Slot : "div";
 
   return (
-    <a
+    <Comp
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-        !isOpen && "justify-center",
+          : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+        !isOpen && "justify-center px-2",
         className
       )}
-      {...props}
     >
-      {icon && <span className="shrink-0">{icon}</span>}
-      {isOpen && <span>{children}</span>}
-    </a>
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {icon && (
+            <span className={cn("shrink-0", !isOpen && "h-5 w-5")}>
+              {icon}
+            </span>
+          )}
+          {isOpen && <span className="truncate">{children}</span>}
+          {!isOpen && (
+            <span className="absolute left-full ml-2 hidden whitespace-nowrap rounded-md bg-popover px-2 py-1 text-sm text-popover-foreground shadow-md group-hover:block">
+              {children}
+            </span>
+          )}
+        </>
+      )}
+    </Comp>
   );
 }
 
@@ -177,16 +212,22 @@ export function SidebarTrigger({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { toggle } = useSidebar();
+  const { isOpen, toggle } = useSidebar();
 
   return (
-    <button
+    <Button
       onClick={toggle}
+      variant="ghost"
+      size="icon"
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        "h-8 w-8 shrink-0 transition-transform duration-300",
+        isOpen ? "rotate-0" : "rotate-180",
         className
       )}
       {...props}
-    />
+    >
+      <ChevronLeft className="h-4 w-4" />
+      <span className="sr-only">Toggle sidebar</span>
+    </Button>
   );
 }
