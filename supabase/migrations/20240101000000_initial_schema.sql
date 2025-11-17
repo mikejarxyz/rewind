@@ -21,11 +21,12 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Function to get current user's organization_id from JWT
-CREATE OR REPLACE FUNCTION auth.user_organization_id()
+-- Helper function to get current user's organization_id
+-- Note: This queries the profiles table, so RLS must be disabled on profiles for this function
+CREATE OR REPLACE FUNCTION get_user_organization_id()
 RETURNS TEXT AS $$
-  SELECT NULLIF(current_setting('request.jwt.claims', true)::json->>'organization_id', '')::text;
-$$ LANGUAGE sql STABLE;
+  SELECT organization_id FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- =====================================================
 -- TABLES
@@ -180,56 +181,56 @@ ALTER TABLE people ENABLE ROW LEVEL SECURITY;
 -- Properties RLS policies
 CREATE POLICY "Users can view properties in their organization"
     ON properties FOR SELECT
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can insert properties in their organization"
     ON properties FOR INSERT
-    WITH CHECK (organization_id = auth.user_organization_id());
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can update properties in their organization"
     ON properties FOR UPDATE
-    USING (organization_id = auth.user_organization_id())
-    WITH CHECK (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id())
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can delete properties in their organization"
     ON properties FOR DELETE
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 -- Units RLS policies
 CREATE POLICY "Users can view units in their organization"
     ON units FOR SELECT
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can insert units in their organization"
     ON units FOR INSERT
-    WITH CHECK (organization_id = auth.user_organization_id());
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can update units in their organization"
     ON units FOR UPDATE
-    USING (organization_id = auth.user_organization_id())
-    WITH CHECK (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id())
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can delete units in their organization"
     ON units FOR DELETE
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 -- People RLS policies
 CREATE POLICY "Users can view people in their organization"
     ON people FOR SELECT
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can insert people in their organization"
     ON people FOR INSERT
-    WITH CHECK (organization_id = auth.user_organization_id());
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can update people in their organization"
     ON people FOR UPDATE
-    USING (organization_id = auth.user_organization_id())
-    WITH CHECK (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id())
+    WITH CHECK (organization_id = get_user_organization_id());
 
 CREATE POLICY "Users can delete people in their organization"
     ON people FOR DELETE
-    USING (organization_id = auth.user_organization_id());
+    USING (organization_id = get_user_organization_id());
 
 -- =====================================================
 -- COMMENTS
@@ -239,5 +240,5 @@ COMMENT ON TABLE properties IS 'Stores property information for the property man
 COMMENT ON TABLE units IS 'Stores individual unit information within properties';
 COMMENT ON TABLE people IS 'Stores information for tenants, landlords, vendors, and contacts';
 
-COMMENT ON FUNCTION auth.user_organization_id() IS 'Returns the organization_id from the current user JWT claims';
+COMMENT ON FUNCTION get_user_organization_id() IS 'Returns the organization_id from the current user JWT claims';
 COMMENT ON FUNCTION update_updated_at_column() IS 'Automatically updates the updated_at timestamp when a row is modified';

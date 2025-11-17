@@ -89,17 +89,11 @@ CREATE TRIGGER on_auth_user_created
     EXECUTE FUNCTION public.handle_new_user();
 
 -- =====================================================
--- UPDATE RLS FUNCTIONS
+-- HELPER FUNCTIONS
 -- =====================================================
 
--- Update the user_organization_id function to pull from profiles
-CREATE OR REPLACE FUNCTION auth.user_organization_id()
-RETURNS TEXT AS $$
-    SELECT organization_id FROM public.profiles WHERE id = auth.uid();
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
-
--- Function to get user role
-CREATE OR REPLACE FUNCTION auth.user_role()
+-- Function to get user role (in public schema, not auth)
+CREATE OR REPLACE FUNCTION get_user_role()
 RETURNS TEXT AS $$
     SELECT role FROM public.profiles WHERE id = auth.uid();
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
@@ -110,4 +104,5 @@ $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 COMMENT ON TABLE profiles IS 'User profiles with organization membership and role information';
 COMMENT ON FUNCTION public.handle_new_user() IS 'Automatically creates a profile and organization for new users';
-COMMENT ON FUNCTION auth.user_role() IS 'Returns the role of the current user';
+COMMENT ON FUNCTION get_user_role() IS 'Returns the role of the current user';
+COMMENT ON FUNCTION get_user_organization_id() IS 'Returns the organization_id of the current user';
