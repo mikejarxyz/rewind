@@ -2,7 +2,7 @@
 CREATE TABLE public.invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT NOT NULL,
-  organization_id UUID NOT NULL,
+  organization_id TEXT NOT NULL,
   invited_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('owner', 'property_manager', 'bookkeeper', 'maintenance', 'viewer')),
   token TEXT NOT NULL UNIQUE,
