@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +20,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
+    // Prevent double submissions
+    if (loading) return;
+
     setLoading(true);
     setError(null);
 
@@ -27,6 +31,11 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error);
       setLoading(false);
+      toast.error("Login failed", {
+        description: result.error,
+      });
+    } else {
+      toast.success("Login successful");
     }
   }
 

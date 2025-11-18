@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,9 @@ export function PersonForm({ person }: PersonFormProps) {
   const isEditing = !!person;
 
   async function handleSubmit(formData: FormData) {
+    // Prevent double submissions
+    if (loading) return;
+
     setLoading(true);
     setError(null);
 
@@ -46,7 +50,11 @@ export function PersonForm({ person }: PersonFormProps) {
 
     if (result.error) {
       setError(result.error);
+      toast.error(isEditing ? "Failed to update person" : "Failed to create person", {
+        description: result.error,
+      });
     } else {
+      toast.success(isEditing ? "Person updated successfully" : "Person created successfully");
       router.push("/dashboard/people");
       router.refresh();
     }
