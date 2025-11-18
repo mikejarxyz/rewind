@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,9 @@ export function PropertyForm({ property }: PropertyFormProps) {
   const isEditing = !!property;
 
   async function handleSubmit(formData: FormData) {
+    // Prevent double submissions
+    if (loading) return;
+
     setLoading(true);
     setError(null);
 
@@ -45,7 +49,11 @@ export function PropertyForm({ property }: PropertyFormProps) {
     if (result.error) {
       setError(result.error);
       setLoading(false);
+      toast.error(isEditing ? "Failed to update property" : "Failed to create property", {
+        description: result.error,
+      });
     } else {
+      toast.success(isEditing ? "Property updated successfully" : "Property created successfully");
       router.push("/dashboard/properties");
       router.refresh();
     }

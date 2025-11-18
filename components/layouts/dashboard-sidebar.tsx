@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ChevronDown,
   LogOut,
+  UserCog,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
@@ -75,6 +76,11 @@ const navigationItems = [
   {
     title: "System",
     items: [
+      {
+        title: "Organization",
+        href: "/dashboard/organization",
+        icon: UserCog,
+      },
       {
         title: "Settings",
         href: "/dashboard/settings",

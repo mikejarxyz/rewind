@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,9 @@ export function UnitForm({ propertyId, unit }: UnitFormProps) {
   const isEditing = !!unit;
 
   async function handleSubmit(formData: FormData) {
+    // Prevent double submissions
+    if (loading) return;
+
     setLoading(true);
     setError(null);
 
@@ -52,7 +56,11 @@ export function UnitForm({ propertyId, unit }: UnitFormProps) {
 
     if (result.error) {
       setError(result.error);
+      toast.error(isEditing ? "Failed to update unit" : "Failed to create unit", {
+        description: result.error,
+      });
     } else {
+      toast.success(isEditing ? "Unit updated successfully" : "Unit created successfully");
       router.push(`/dashboard/properties/${propertyId}`);
       router.refresh();
     }
