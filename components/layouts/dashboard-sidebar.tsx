@@ -12,8 +12,11 @@ import {
   ChevronDown,
   LogOut,
   UserCog,
+  Shield,
+  Moon,
+  Sun,
 } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import { useTheme } from "next-themes";
 import {
   Sidebar,
   SidebarContent,
@@ -36,8 +39,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/actions/auth";
+import type { CurrentUser } from "@/lib/supabase/server";
 
-const navigationItems = [
+const baseNavigationItems = [
   {
     title: "Overview",
     items: [
@@ -91,12 +95,13 @@ const navigationItems = [
 ];
 
 interface DashboardSidebarProps {
-  user: User;
+  currentUser: CurrentUser;
 }
 
-export function DashboardSidebar({ user }: DashboardSidebarProps) {
+export function DashboardSidebar({ currentUser }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { isOpen } = useSidebar();
+  const { theme, setTheme } = useTheme();
 
   async function handleLogout() {
     await logout();
@@ -109,6 +114,29 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
       ?.slice(0, 2)
       .toUpperCase() ?? "U";
   };
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  // Add Roles link to System section if user is owner
+  const navigationItems = baseNavigationItems.map((section) => {
+    if (section.title === "System" && currentUser.role === "owner") {
+      return {
+        ...section,
+        items: [
+          ...section.items.slice(0, 1), // Organization
+          {
+            title: "Roles",
+            href: "/dashboard/organization/roles",
+            icon: Shield,
+          },
+          ...section.items.slice(1), // Settings
+        ],
+      };
+    }
+    return section;
+  });
 
   return (
     <Sidebar>
@@ -165,17 +193,17 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             >
               <Avatar className="h-8 w-8 shrink-0">
                 <AvatarFallback className="text-xs">
-                  {getInitials(user.email || "")}
+                  {getInitials(currentUser.email || "")}
                 </AvatarFallback>
               </Avatar>
               {isOpen && (
                 <>
                   <div className="flex flex-1 flex-col overflow-hidden">
                     <span className="text-sm font-medium truncate">
-                      {user.email?.split("@")[0]}
+                      {currentUser.email?.split("@")[0]}
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
-                      {user.email}
+                      {currentUser.email}
                     </span>
                   </div>
                   <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -192,10 +220,19 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">Account</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
+                  {currentUser.email}
                 </p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme}>
+              {theme === "dark" ? (
+                <Sun className="mr-2 h-4 w-4" />
+              ) : (
+                <Moon className="mr-2 h-4 w-4" />
+              )}
+              <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
