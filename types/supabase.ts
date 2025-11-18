@@ -1,12 +1,3 @@
-/**
- * Database types generated from Supabase schema
- *
- * To regenerate these types after migrations:
- * npx supabase gen types typescript --local > types/supabase.ts
- * or
- * npx supabase gen types typescript --project-id YOUR_PROJECT_ID > types/supabase.ts
- */
-
 export type Json =
   | string
   | number
@@ -15,260 +6,432 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       people: {
         Row: {
-          id: string
-          first_name: string
-          last_name: string
-          email: string | null
-          phone: string | null
-          alternate_phone: string | null
-          type: "tenant" | "landlord" | "vendor" | "contact"
-          company_name: string | null
           address: string | null
+          alternate_phone: string | null
           city: string | null
-          state: string | null
-          zip_code: string | null
+          company_name: string | null
+          created_at: string
+          created_by: string
+          email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
-          notes: string | null
-          status: "active" | "inactive"
-          vendor_category: string | null
+          first_name: string
+          id: string
+          last_name: string
           license_number: string | null
-          created_at: string
-          updated_at: string
-          created_by: string
-          updated_by: string
+          notes: string | null
           organization_id: string
+          phone: string | null
+          state: string | null
+          status: string
+          type: string
+          updated_at: string
+          updated_by: string
+          vendor_category: string | null
+          zip_code: string | null
         }
         Insert: {
-          id: string
-          first_name: string
-          last_name: string
-          email?: string | null
-          phone?: string | null
-          alternate_phone?: string | null
-          type: "tenant" | "landlord" | "vendor" | "contact"
-          company_name?: string | null
           address?: string | null
+          alternate_phone?: string | null
           city?: string | null
-          state?: string | null
-          zip_code?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
-          notes?: string | null
-          status?: "active" | "inactive"
-          vendor_category?: string | null
+          first_name: string
+          id: string
+          last_name: string
           license_number?: string | null
-          created_at?: string
-          updated_at?: string
-          created_by: string
-          updated_by: string
+          notes?: string | null
           organization_id: string
+          phone?: string | null
+          state?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+          updated_by: string
+          vendor_category?: string | null
+          zip_code?: string | null
         }
         Update: {
-          id?: string
-          first_name?: string
-          last_name?: string
-          email?: string | null
-          phone?: string | null
-          alternate_phone?: string | null
-          type?: "tenant" | "landlord" | "vendor" | "contact"
-          company_name?: string | null
           address?: string | null
+          alternate_phone?: string | null
           city?: string | null
-          state?: string | null
-          zip_code?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
-          notes?: string | null
-          status?: "active" | "inactive"
-          vendor_category?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
           license_number?: string | null
-          created_at?: string
-          updated_at?: string
-          created_by?: string
-          updated_by?: string
+          notes?: string | null
           organization_id?: string
+          phone?: string | null
+          state?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string
+          vendor_category?: string | null
+          zip_code?: string | null
         }
+        Relationships: []
       }
       profiles: {
         Row: {
+          created_at: string
+          email: string | null
           id: string
           organization_id: string
-          role: "owner" | "property_manager" | "bookkeeper" | "maintenance" | "viewer"
-          email: string | null
-          created_at: string
+          role: string
           updated_at: string
         }
         Insert: {
+          created_at?: string
+          email?: string | null
           id: string
           organization_id: string
-          role?: "owner" | "property_manager" | "bookkeeper" | "maintenance" | "viewer"
-          email?: string | null
-          created_at?: string
+          role?: string
           updated_at?: string
         }
         Update: {
+          created_at?: string
+          email?: string | null
           id?: string
           organization_id?: string
-          role?: "owner" | "property_manager" | "bookkeeper" | "maintenance" | "viewer"
-          email?: string | null
-          created_at?: string
+          role?: string
           updated_at?: string
         }
+        Relationships: []
       }
       properties: {
         Row: {
-          id: string
-          name: string
           address: string
           city: string
-          state: string
-          zip_code: string
           country: string
-          property_type: "residential" | "commercial" | "mixed-use"
-          number_of_units: number
-          year_built: number | null
-          square_feet: string | null
-          lot_size: string | null
-          purchase_price: string | null
-          purchase_date: string | null
-          current_value: string | null
-          status: "active" | "inactive" | "sold"
-          notes: string | null
           created_at: string
-          updated_at: string
           created_by: string
-          updated_by: string
+          current_value: number | null
+          id: string
+          lot_size: number | null
+          name: string
+          notes: string | null
+          number_of_units: number
           organization_id: string
+          property_type: string
+          purchase_date: string | null
+          purchase_price: number | null
+          square_feet: number | null
+          state: string
+          status: string
+          updated_at: string
+          updated_by: string
+          year_built: number | null
+          zip_code: string
         }
         Insert: {
-          id: string
-          name: string
           address: string
           city: string
-          state: string
-          zip_code: string
           country?: string
-          property_type: "residential" | "commercial" | "mixed-use"
-          number_of_units?: number
-          year_built?: number | null
-          square_feet?: string | null
-          lot_size?: string | null
-          purchase_price?: string | null
-          purchase_date?: string | null
-          current_value?: string | null
-          status?: "active" | "inactive" | "sold"
-          notes?: string | null
           created_at?: string
-          updated_at?: string
           created_by: string
-          updated_by: string
+          current_value?: number | null
+          id: string
+          lot_size?: number | null
+          name: string
+          notes?: string | null
+          number_of_units?: number
           organization_id: string
+          property_type: string
+          purchase_date?: string | null
+          purchase_price?: number | null
+          square_feet?: number | null
+          state: string
+          status?: string
+          updated_at?: string
+          updated_by: string
+          year_built?: number | null
+          zip_code: string
         }
         Update: {
-          id?: string
-          name?: string
           address?: string
           city?: string
-          state?: string
-          zip_code?: string
           country?: string
-          property_type?: "residential" | "commercial" | "mixed-use"
-          number_of_units?: number
-          year_built?: number | null
-          square_feet?: string | null
-          lot_size?: string | null
-          purchase_price?: string | null
-          purchase_date?: string | null
-          current_value?: string | null
-          status?: "active" | "inactive" | "sold"
-          notes?: string | null
           created_at?: string
-          updated_at?: string
           created_by?: string
-          updated_by?: string
+          current_value?: number | null
+          id?: string
+          lot_size?: number | null
+          name?: string
+          notes?: string | null
+          number_of_units?: number
           organization_id?: string
+          property_type?: string
+          purchase_date?: string | null
+          purchase_price?: number | null
+          square_feet?: number | null
+          state?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+          year_built?: number | null
+          zip_code?: string
         }
+        Relationships: []
       }
       units: {
         Row: {
-          id: string
-          property_id: string
-          unit_number: string
-          floor: string | null
+          bathrooms: number
           bedrooms: number
-          bathrooms: string
-          square_feet: string | null
-          monthly_rent: string | null
-          security_deposit: string | null
-          status: "vacant" | "occupied" | "maintenance" | "reserved"
-          is_available: boolean
-          features: string | null
-          notes: string | null
           created_at: string
-          updated_at: string
           created_by: string
-          updated_by: string
+          features: string | null
+          floor: string | null
+          id: string
+          is_available: boolean
+          monthly_rent: number | null
+          notes: string | null
           organization_id: string
+          property_id: string
+          security_deposit: number | null
+          square_feet: number | null
+          status: string
+          unit_number: string
+          updated_at: string
+          updated_by: string
         }
         Insert: {
-          id: string
-          property_id: string
-          unit_number: string
-          floor?: string | null
+          bathrooms?: number
           bedrooms?: number
-          bathrooms?: string
-          square_feet?: string | null
-          monthly_rent?: string | null
-          security_deposit?: string | null
-          status?: "vacant" | "occupied" | "maintenance" | "reserved"
-          is_available?: boolean
-          features?: string | null
-          notes?: string | null
           created_at?: string
-          updated_at?: string
           created_by: string
-          updated_by: string
+          features?: string | null
+          floor?: string | null
+          id: string
+          is_available?: boolean
+          monthly_rent?: number | null
+          notes?: string | null
           organization_id: string
+          property_id: string
+          security_deposit?: number | null
+          square_feet?: number | null
+          status?: string
+          unit_number: string
+          updated_at?: string
+          updated_by: string
         }
         Update: {
-          id?: string
-          property_id?: string
-          unit_number?: string
-          floor?: string | null
+          bathrooms?: number
           bedrooms?: number
-          bathrooms?: string
-          square_feet?: string | null
-          monthly_rent?: string | null
-          security_deposit?: string | null
-          status?: "vacant" | "occupied" | "maintenance" | "reserved"
-          is_available?: boolean
-          features?: string | null
-          notes?: string | null
           created_at?: string
-          updated_at?: string
           created_by?: string
-          updated_by?: string
+          features?: string | null
+          floor?: string | null
+          id?: string
+          is_available?: boolean
+          monthly_rent?: number | null
+          notes?: string | null
           organization_id?: string
+          property_id?: string
+          security_deposit?: number | null
+          square_feet?: number | null
+          status?: string
+          unit_number?: string
+          updated_at?: string
+          updated_by?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "fk_property"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_organization_id: { Args: never; Returns: string }
+      get_user_role: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
     }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const
