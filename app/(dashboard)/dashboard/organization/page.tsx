@@ -2,6 +2,7 @@ import { getOrganizationUsers } from "@/actions/organization";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { OrganizationTable } from "./organization-table";
+import { InviteDialog } from "./invite-dialog";
 import {
   Card,
   CardContent,
@@ -19,13 +20,18 @@ export default async function OrganizationPage() {
 
   const { users, error } = await getOrganizationUsers();
 
+  const isOwner = currentUser.role === "owner";
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Organization</h1>
-        <p className="text-muted-foreground">
-          Manage your team members and their roles
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Organization</h1>
+          <p className="text-muted-foreground">
+            Manage your team members and their roles
+          </p>
+        </div>
+        {isOwner && <InviteDialog />}
       </div>
 
       <Card>
